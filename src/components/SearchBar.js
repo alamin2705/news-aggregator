@@ -10,20 +10,20 @@ const SearchBar = ({ onSearch }) => {
   };
 
   return (
-    <div className="flex">
+    <div className="mb-6 flex items-center">
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search articles..."
-        className="p-2 border rounded-l-md w-full"
+        className="p-3 border border-gray-300 rounded-l-full w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
       />
       <button
         onClick={handleSearchClick}
-        disabled={!query.trim()} // Disable button if query is empty or only whitespace
-        className={`p-2 rounded-r-md border border-blue-600 ${
+        disabled={!query.trim()}
+        className={`p-3 rounded-r-full text-lg font-semibold transition-colors duration-300 ${
           query.trim()
-            ? 'bg-blue-500 text-white hover:bg-blue-600'
+            ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800'
             : 'bg-gray-300 text-gray-600 cursor-not-allowed'
         }`}
       >
