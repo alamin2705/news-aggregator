@@ -11,26 +11,44 @@ const Home = () => {
   const [filters, setFilters] = useState({ category: '', source: '' });
   const [categoryData, setCategoryData] = useState([]);
   const [sourceData, setSourceData] = useState([]);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getArticles = async () => {
-      setLoading(true); // Start loading
+      setLoading(true);
       const data = await fetchArticles(queryData, filters);
       setArticles(data);
 
+      const categories = data.reduce((acc, article) => {
+        let category;
+        if (article.source.name === 'The Guardian') {
+          category = article.sectionName;
+        } else if (article.source.name === 'The New York Times') {
+          category = article.news_desk;
+        } else if (article.source.name !== 'The Guardian' && article.source.name !== 'The New York Times') {
+          category = article.category || '';
+        }
+
+        if (category && !acc.includes(category)) {
+          acc.push(category);
+        }
+        return acc;
+      }, []);
+      setCategoryData(categories);
+
       const sources = data.reduce((acc, article) => {
-        if (article.source && article.source.name && article.source.id) {
-          if (!acc.some(source => source.id === article.source.id)) {
-            acc.push({ name: article.source.name, id: article.source.id });
+        if (article.source && article.source.name) {
+          if (!acc.some(source => source.name === article.source.name)) {
+            acc.push({ name: article.source.name });
           }
         }
         return acc;
       }, []);
-
       setSourceData(sources);
-      setLoading(false); // Stop loading
+
+      setLoading(false);
     };
+
     if (queryData) {
       getArticles();
     }
@@ -38,19 +56,50 @@ const Home = () => {
 
   useEffect(() => {
     const applyFilters = () => {
-      const { category, source } = filters;
+      const { category, source, startDate, endDate } = filters;
       let filtered = [...articles];
+
       if (category) {
-        filtered = filtered.filter(article => article.category === category);
+        filtered = filtered.filter(article => {
+          if (article.source.name === 'The Guardian') {
+            return article.sectionName === category;
+          } else if (article.source.name === 'The New York Times') {
+            return article.news_desk === category;
+          } else {
+            return article.category === category;
+          }
+        });
       }
+
       if (source) {
-        filtered = filtered.filter(article => article.source.id === source);
+        filtered = filtered.filter(article => article.source.name === source);
       }
+
+      if (startDate || endDate) {
+        filtered = filtered.filter(article => {
+          const articleDate = new Date(article.publishedAt);
+          const start = startDate ? new Date(startDate) : null;
+          const end = endDate ? new Date(endDate) : null;
+
+          if (start && end) {
+            return articleDate >= start && articleDate <= end;
+          } else if (start) {
+            return articleDate >= start;
+          } else if (end) {
+            return articleDate <= end;
+          } else {
+            return true;
+          }
+        });
+      }
+
       setFilteredArticles(filtered);
     };
 
     applyFilters();
   }, [filters, articles]);
+
+
 
   const handleSearch = (q) => {
     setQueryData(q);

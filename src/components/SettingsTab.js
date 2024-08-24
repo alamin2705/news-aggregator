@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { fetchNewsOptions } from '../services/newsApi';
 
 const SettingsTab = () => {
@@ -18,7 +20,24 @@ const SettingsTab = () => {
         setCategories(data.category);
         setSources(data.source);
         setAuthors(data.author);
+
+        const savedCategory = localStorage.getItem('selectedCategory');
+        const savedSource = localStorage.getItem('selectedSource');
+        const savedAuthor = localStorage.getItem('selectedAuthor');
+
+        if (savedCategory) setSelectedCategory(savedCategory);
+        if (savedSource) setSelectedSource(savedSource);
+        if (savedAuthor) setSelectedAuthor(savedAuthor);
       } catch (error) {
+        toast.error('Error fetching news options:'+ error, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
         console.error('Error fetching news options:', error);
       } finally {
         setLoading(false);
@@ -41,12 +60,32 @@ const SettingsTab = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    console.log({
-      selectedCategory,
-      selectedSource,
-      selectedAuthor
-    });
+
+    try {
+      localStorage.setItem('selectedCategory', selectedCategory);
+      localStorage.setItem('selectedSource', selectedSource);
+      localStorage.setItem('selectedAuthor', selectedAuthor);
+
+      toast.success('Settings saved successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (error) {
+      toast.error('Failed to save settings!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   };
 
   if (loading) {
@@ -69,7 +108,7 @@ const SettingsTab = () => {
           >
             <option value="">Select Category</option>
             {categories.map(category => (
-              <option key={category.id} value={category.id}>
+              <option key={`category-${category.id}`} value={category.id}>
                 {category.name}
               </option>
             ))}
@@ -85,7 +124,7 @@ const SettingsTab = () => {
           >
             <option value="">Select Source</option>
             {sources.map(source => (
-              <option key={source.id} value={source.id}>
+              <option key={`source-${source.id}`} value={source.id}>
                 {source.name}
               </option>
             ))}
@@ -100,8 +139,8 @@ const SettingsTab = () => {
             onChange={handleAuthorChange}
           >
             <option value="">Select Author</option>
-            {authors.map(author => (
-              <option key={author.id} value={author.id}>
+            {authors.map((author, index) => (
+              <option key={`author-${author.id || index}`} value={author.id}>
                 {author.name}
               </option>
             ))}
@@ -115,6 +154,9 @@ const SettingsTab = () => {
           Submit
         </button>
       </form>
+
+      {/* ToastContainer to render toasts */}
+      <ToastContainer />
     </div>
   );
 };
